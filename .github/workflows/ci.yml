@@ -17,21 +17,18 @@ jobs:
         os: [ubuntu-latest, macos-latest, windows-latest]
 
     steps:
-    - name: Cache Qt
-      id: cache-qt
-      uses: actions/cache@v1
-      with:
-        path: ../Qt
-        key: ${{runner.os}}-QtCache
-
     - name: Install Qt
       uses: jurplel/install-qt-action@v4
       with:
         cache: true
-        cache-key-prefix: ${{ runner.os }}-QtCache
+        cache-key-prefix: install-qt-action-${{runner.os}}
 
     - name: Git Checkout
-      uses: actions/checkout@v1
+      uses: actions/checkout@v4
+
+    - name: Enable Developer Command Prompt
+      uses: ilammy/msvc-dev-cmd@v1
+      if: matrix.os == 'windows-latest'
 
     - name: Build
       run: |
@@ -42,7 +39,6 @@ jobs:
 
     - name: Build
       run: |
-        call "%programfiles(x86)%\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
         qmake -v
         qmake -config verbose -config ${{matrix.config}}
         set CL=/MP
@@ -59,24 +55,17 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Cache Qt
-      id: cache-qt
-      uses: actions/cache@v1
-      with:
-        path: ../Qt
-        key: ${{runner.os}}-QtCache
-
     - name: Install Qt
       uses: jurplel/install-qt-action@v4
       with:
         cache: true
-        cache-key-prefix: ${{ runner.os }}-QtCache
+        cache-key-prefix: install-qt-action-${{runner.os}}
 
     - name: Install LCOV
       run: sudo apt install lcov
 
     - name: Git Checkout
-      uses: actions/checkout@v1
+      uses: actions/checkout@v4
 
     - name: Configure
       run: |
@@ -92,7 +81,7 @@ jobs:
         cat coverage/Irc*.cov > coverage/lcov.info
 
     - name: Upload Coverage
-      uses: codecov/codecov-action@v1.0.6
+      uses: codecov/codecov-action@v5.1.2
       with:
         token: ${{secrets.CODECOV_TOKEN}}
         file: coverage/lcov.info
