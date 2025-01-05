@@ -1,6 +1,6 @@
-cmake_minimum_required(VERSION 3.8)
+cmake_minimum_required(VERSION 3.15)
 
-project(LibCommuni VERSION 3.6.0)
+project(LibCommuni VERSION 3.7.0)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -8,6 +8,14 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
+
+option(BUILD_WITH_QT6 "Build with Qt6" On)
+
+if (BUILD_WITH_QT6)
+    set(MAJOR_QT_VERSION "6")
+else()
+    set(MAJOR_QT_VERSION "5")
+endif()
 
 find_package(Qt${MAJOR_QT_VERSION} REQUIRED COMPONENTS Core Network)
 
