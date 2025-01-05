@@ -38,6 +38,7 @@
 #include <QMetaEnum>
 #include <QVariant>
 #include <QDebug>
+#include <QTimeZone>
 #include <functional>
 
 IRC_BEGIN_NAMESPACE
@@ -701,7 +702,7 @@ IrcMessage* IrcMessage::fromData(const QByteArray& data, IrcConnection* connecti
     if (!tag.isEmpty()) {
         QDateTime ts = QDateTime::fromString(QString::fromUtf8(tag), Qt::ISODate);
         if (ts.isValid())
-            message->d_ptr->timeStamp = ts.toTimeSpec(Qt::LocalTime);
+            message->d_ptr->timeStamp = ts.toTimeZone(QTimeZone::LocalTime);
     }
     return message;
 }
