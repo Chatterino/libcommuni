@@ -38,7 +38,9 @@
 #include <QMetaEnum>
 #include <QVariant>
 #include <QDebug>
+#if QT_VERSION >= QT_VERSION_CHECK(6, 9, 0)
 #include <QTimeZone>
+#endif
 #include <functional>
 
 IRC_BEGIN_NAMESPACE
@@ -702,7 +704,11 @@ IrcMessage* IrcMessage::fromData(const QByteArray& data, IrcConnection* connecti
     if (!tag.isEmpty()) {
         QDateTime ts = QDateTime::fromString(QString::fromUtf8(tag), Qt::ISODate);
         if (ts.isValid())
+#if QT_VERSION >= QT_VERSION_CHECK(6, 9, 0)
             message->d_ptr->timeStamp = ts.toTimeZone(QTimeZone::LocalTime);
+#else
+            message->d_ptr->timeStamp = ts.toTimeSpec(Qt::LocalTime);
+#endif
     }
     return message;
 }
