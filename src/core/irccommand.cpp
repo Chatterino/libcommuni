@@ -926,6 +926,6 @@ QDebug operator<<(QDebug debug, const IrcCommand* command)
 }
 #endif // QT_NO_DEBUG_STREAM
 
-#include "moc_irccommand.cpp"
-
 IRC_END_NAMESPACE
+
+#include "moc_irccommand.cpp"

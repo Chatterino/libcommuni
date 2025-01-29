@@ -407,6 +407,6 @@ void IrcCompleter::reset()
     d->completions.clear();
 }
 
-#include "moc_irccompleter.cpp"
-
 IRC_END_NAMESPACE
+
+#include "moc_irccompleter.cpp"

@@ -1421,7 +1421,8 @@ bool IrcBufferModel::restoreState(const QByteArray& state, int version)
     return true;
 }
 
+IRC_END_NAMESPACE
+
 #include "moc_ircbuffermodel.cpp"
 #include "moc_ircbuffermodel_p.cpp"
 
-IRC_END_NAMESPACE
