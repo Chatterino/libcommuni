@@ -25,9 +25,10 @@ jobs:
         key: ${{runner.os}}-QtCache
 
     - name: Install Qt
-      uses: jurplel/install-qt-action@v2
+      uses: jurplel/install-qt-action@v4
       with:
-        cached: ${{steps.cache-qt.outputs.cache-hit}}
+        cache: true
+        cache-key-prefix: ${{ runner.os }}-QtCache
 
     - name: Git Checkout
       uses: actions/checkout@v1
@@ -66,9 +67,10 @@ jobs:
         key: ${{runner.os}}-QtCache
 
     - name: Install Qt
-      uses: jurplel/install-qt-action@v2
+      uses: jurplel/install-qt-action@v4
       with:
-        cached: ${{steps.cache-qt.outputs.cache-hit}}
+        cache: true
+        cache-key-prefix: ${{ runner.os }}-QtCache
 
     - name: Install LCOV
       run: sudo apt install lcov
