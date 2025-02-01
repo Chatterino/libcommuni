@@ -15,13 +15,14 @@ jobs:
       matrix:
         config: [shared, static]
         os: [ubuntu-latest, macos-latest, windows-latest]
+        qt-version: [6.7.*]
 
     steps:
     - name: Install Qt
       uses: jurplel/install-qt-action@v4
       with:
         cache: true
-        cache-key-prefix: install-qt-action-${{runner.os}}
+        cache-key-prefix: install-qt-action-${{runner.os}}-${{matrix.qt-version}}
 
     - name: Git Checkout
       uses: actions/checkout@v4
