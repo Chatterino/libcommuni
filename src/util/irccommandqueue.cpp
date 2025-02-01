@@ -244,7 +244,7 @@ void IrcCommandQueue::flush()
     d->_irc_sendBatch(true);
 }
 
+IRC_END_NAMESPACE
+
 #include "moc_irccommandqueue.cpp"
 #include "moc_irccommandqueue_p.cpp"
-
-IRC_END_NAMESPACE

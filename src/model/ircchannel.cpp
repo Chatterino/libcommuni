@@ -669,6 +669,6 @@ QDebug operator<<(QDebug debug, const IrcChannel* channel)
 }
 #endif // QT_NO_DEBUG_STREAM
 
-#include "moc_ircchannel.cpp"
-
 IRC_END_NAMESPACE
+
+#include "moc_ircchannel.cpp"

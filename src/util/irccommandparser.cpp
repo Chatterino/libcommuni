@@ -599,6 +599,6 @@ void IrcCommandParser::reset()
     setTarget(QString());
 }
 
-#include "moc_irccommandparser.cpp"
-
 IRC_END_NAMESPACE
+
+#include "moc_irccommandparser.cpp"
