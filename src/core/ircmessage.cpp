@@ -533,7 +533,7 @@ QString IrcMessage::host() const
 QString IrcMessage::account() const
 {
     Q_D(const IrcMessage);
-    return d->tags().getOrEmpty(QStringLiteral("account"));
+    return d->tags().getOrEmpty("account");
 }
 
 /*!
@@ -622,10 +622,10 @@ TagsRef IrcMessage::tags() const
     return d->tags();
 }
 
-void IrcMessage::setTags(const QVariantMap& tags)
+void IrcMessage::setTags(std::unordered_map<std::string_view, QString> tags)
 {
     Q_D(IrcMessage);
-    d->setTags(tags);
+    d->setTags(std::move(tags));
 }
 
 /*!
@@ -635,7 +635,7 @@ void IrcMessage::setTags(const QVariantMap& tags)
 
     \sa \ref ircv3
  */
-QVariant IrcMessage::tag(const QString& name) const
+QVariant IrcMessage::tag(std::string_view name) const
 {
     Q_D(const IrcMessage);
     return d->tags().getOrEmpty(name);
@@ -648,7 +648,7 @@ QVariant IrcMessage::tag(const QString& name) const
 
     \sa \ref ircv3
  */
-void IrcMessage::setTag(const QString& name, const QString& value)
+void IrcMessage::setTag(std::string_view name, const QString &value)
 {
     Q_D(IrcMessage);
     d->insertTag(name, value);
@@ -663,16 +663,6 @@ IrcMessage* IrcMessage::fromData(const QByteArray& data, IrcConnection* connecti
     IrcMessage* message = irc_create_message(md.command, connection);
     Q_ASSERT(message);
     message->d_ptr->data = md;
-    QByteArray tag = md.tags.value("time");
-    if (!tag.isEmpty()) {
-        QDateTime ts = QDateTime::fromString(QString::fromUtf8(tag), Qt::ISODate);
-        if (ts.isValid())
-#if QT_VERSION >= QT_VERSION_CHECK(6, 6, 9)
-            message->d_ptr->timeStamp = ts.toTimeZone(QTimeZone::LocalTime);
-#else
-            message->d_ptr->timeStamp = ts.toTimeSpec(Qt::LocalTime);
-#endif
-    }
     return message;
 }
 

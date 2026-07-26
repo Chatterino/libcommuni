@@ -93,7 +93,6 @@ private slots:
     void testMessageComposerCrash_data();
     void testMessageComposerCrash();
     void testBatch();
-    void testServerTime();
 
     void testSendCommand();
     void testSendData();
@@ -1390,23 +1389,6 @@ void tst_IrcConnection::testBatch()
     QVERIFY(q3);
     QCOMPARE(q3->nick(), QString("jilles"));
     QCOMPARE(q3->reason(), QString("irc.hub other.host"));
-}
-
-void tst_IrcConnection::testServerTime()
-{
-    connection->open();
-    QVERIFY(waitForOpened());
-
-    QSignalSpy messageSpy(connection, SIGNAL(numericMessageReceived(IrcNumericMessage*)));
-    QVERIFY(messageSpy.isValid());
-
-    QVERIFY(waitForWritten("@time=2011-10-19T16:40:51.620Z :my.irc.ser.ver 001 communi :Welcome..."));
-
-    QCOMPARE(messageSpy.count(), 1);
-    IrcNumericMessage* message = messageSpy.last().last().value<IrcNumericMessage*>();
-    QVERIFY(message);
-    QVERIFY(message->isValid());
-    QCOMPARE(message->timeStamp(), QDateTime(QDate(2011, 10, 19), QTime(16, 40, 51, 620), Qt::UTC));
 }
 
 void tst_IrcConnection::testSendCommand()

@@ -27,6 +27,7 @@
 */
 
 #include "ircmessage_p.h"
+#include <string_view>
 
 IRC_BEGIN_NAMESPACE
 
@@ -114,24 +115,24 @@ void IrcMessagePrivate::setParams(const QStringList& params)
 
 TagsRef IrcMessagePrivate::tags() const
 {
-    if (!m_tags.isExplicit() && m_tags.isNull() && !data.tags.isEmpty()) {
-        QVariantMap tags;
-        QMap<QByteArray, QByteArray>::const_iterator it;
-        for (it = data.tags.constBegin(); it != data.tags.constEnd(); ++it)
-            tags.insert(QString::fromUtf8(it.key()), QString::fromUtf8(it.value()));
+    if (!m_tags.isExplicit() && m_tags.isNull() && !data.tags.empty()) {
+        std::unordered_map<std::string_view, QString> tags;
+        for (const auto &[k, v] : data.tags) {
+            tags.insert_or_assign(k, QString::fromUtf8(v.data(), v.size()));
+        }
         m_tags = tags;
     }
     return TagsRef(m_tags.value());
 }
 
-void IrcMessagePrivate::setTags(const QVariantMap& tags)
+void IrcMessagePrivate::setTags(std::unordered_map<std::string_view, QString> tags)
 {
-    m_tags.setValue(tags);
+    m_tags.mutate() = std::move(tags);
 }
 
-void IrcMessagePrivate::insertTag(const QString& name, const QString &value)
+void IrcMessagePrivate::insertTag(std::string_view name, const QString &value)
 {
-    m_tags.mutate().insert(name, value);
+    m_tags.mutate().insert_or_assign(name, value);
 }
 
 QByteArray IrcMessagePrivate::content() const
@@ -140,12 +141,22 @@ QByteArray IrcMessagePrivate::content() const
         QByteArray data;
 
         // format <tags>
-        QStringList tt;
-        const auto t = tags();
-        for (const auto &[key, value] : t.raw().asKeyValueRange())
-            tt += key + QLatin1Char('=') + value.toString();
-        if (!tt.isEmpty())
-            data += '@' + tt.join(QLatin1String(";")).toUtf8() + ' ';
+        const auto &t = tags().raw();
+        if (!t.empty()) {
+            data += '@';
+            bool first = true;
+            for (const auto &[k, v] : t) {
+                if (first) {
+                    first = false;
+                } else {
+                    data += ';';
+                }
+                data += k;
+                data += '=';
+                data += v.toUtf8();
+            }
+            data += ' ';
+        }
 
         // format <prefix>
         const QString p = prefix();
@@ -180,7 +191,21 @@ void IrcMessagePrivate::invalidate()
     m_tags.clear();
 }
 
-IrcMessageData IrcMessageData::fromData(const QByteArray& data)
+namespace
+{
+
+std::pair<QByteArrayView, QByteArrayView> splitOnce(QByteArrayView view, char c)
+{
+    auto idx = view.indexOf(c);
+    if (idx <= 0) {
+        return {view, {}};
+    }
+    return {view.sliced(0, idx), view.sliced(idx + 1)};
+}
+
+} // namespace
+
+IrcMessageData IrcMessageData::fromData(const QByteArray &data)
 {
     IrcMessageData message;
     message.content = data;
@@ -204,45 +229,47 @@ IrcMessageData IrcMessageData::fromData(const QByteArray& data)
     //  <value>   ::= <sequence of any characters except NUL, BELL, CR, LF, semicolon (`;`) and SPACE>
     //  <vendor>  ::= <host>
 
-    QByteArray process = data;
+    QByteArrayView process = data;
 
     // parse <tags>
     if (process.startsWith('@')) {
-        process.remove(0, 1);
-        QByteArray tags = process.left(process.indexOf(' '));
-        foreach (const QByteArray& tag, tags.split(';')) {
-            const int idx = tag.indexOf('=');
-            if (idx != -1)
-                message.tags.insert(tag.left(idx), tag.mid(idx + 1));
-            else
-                message.tags.insert(tag, QByteArray());
+        process = process.sliced(1);
+        auto spaceIdx = process.indexOf(' ');
+        if (spaceIdx >= 0) {
+            auto tags = process.left(spaceIdx);
+            process = process.sliced(tags.size() + 1);
+
+            while (!tags.empty()) {
+                auto [fullTag, rest] = splitOnce(tags, ';');
+                tags = rest;
+                message.tags.emplace_back(splitOnce(fullTag, '='));
+            }
         }
-        process.remove(0, tags.length() + 1);
     }
 
     // parse <prefix>
     if (process.startsWith(':')) {
-        message.prefix = process.left(process.indexOf(' '));
-        process.remove(0, message.prefix.length() + 1);
+        message.prefix = process.left(process.indexOf(' ')).toByteArray();
+        process = process.sliced(message.prefix.length() + 1);
     } else {
         // empty (not null)
         message.prefix = QByteArray("");
     }
 
     // parse <command>
-    message.command = process.mid(0, process.indexOf(' '));
-    process.remove(0, message.command.length() + 1);
+    message.command = process.mid(0, process.indexOf(' ')).toByteArray();
+    process = process.sliced(std::min(message.command.length() + 1, process.size()));
 
     // parse <params>
     while (!process.isEmpty()) {
         if (process.startsWith(':')) {
-            process.remove(0, 1);
-            message.params += process;
-            process.clear();
+            process = process.sliced(1);
+            message.params += process.toByteArray();
+            process = {};
         } else {
-            QByteArray param = process.mid(0, process.indexOf(' '));
-            process.remove(0, param.length() + 1);
-            message.params += param;
+            auto [param, rest] = splitOnce(process, ' ');
+            process = rest;
+            message.params += param.toByteArray();
         }
     }
 

@@ -39,37 +39,37 @@ const TagsRef::MapType &TagsRef::raw() const
     return *this->storage;
 }
 
-std::optional<QString> TagsRef::get(const QString &tag) const
+std::optional<QString> TagsRef::get(std::string_view tag) const
 {
     auto it = this->storage->find(tag);
     if (it != this->storage->end())
     {
-        return it->toString();
+        return it->second;
     }
     return {};
 }
 
-QString TagsRef::getOr(const QString &tag, const QString &other) const
+QString TagsRef::getOr(std::string_view tag, const QString &other) const
 {
     auto it = this->storage->find(tag);
     if (it != this->storage->end())
     {
-        return it->toString();
+        return it->second;
     }
     return other;
 }
 
-QString TagsRef::getOrEmpty(const QString &tag) const
+QString TagsRef::getOrEmpty(std::string_view tag) const
 {
     auto it = this->storage->find(tag);
     if (it != this->storage->end())
     {
-        return it->toString();
+        return it->second;
     }
     return {};
 }
 
-bool TagsRef::has(const QString &tag) const
+bool TagsRef::has(std::string_view tag) const
 {
     return this->storage->contains(tag);
 }

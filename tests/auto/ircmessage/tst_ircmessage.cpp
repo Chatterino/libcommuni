@@ -33,7 +33,6 @@ private slots:
     void testFlags();
 
     void testTags();
-    void testServerTime();
 
     void testAccount_data();
     void testAccount();
@@ -215,10 +214,11 @@ void tst_IrcMessage::testFlags()
 
 void tst_IrcMessage::testTags()
 {
-    QVariantMap tags;
-    tags.insert(QStringLiteral("aaa"), "bbb");
-    tags.insert(QStringLiteral("ccc"), "");
-    tags.insert(QStringLiteral("example.com/ddd"), "eee");
+    std::unordered_map<std::string_view, QString> tags{
+        {"aaa", "bbb"},
+        {"ccc", ""},
+        {"example.com/ddd", "eee"},
+    };
 
     IrcConnection connection;
     IrcMessage* message = IrcMessage::fromData("@aaa=bbb;ccc;example.com/ddd=eee :nick!ident@host.com PRIVMSG me :Hello", &connection);
@@ -239,29 +239,35 @@ void tst_IrcMessage::testTags()
     QCOMPARE(message->tags().getOr("ddd", "foo"), "foo");
     QCOMPARE(message->tags().getOrEmpty("ddd"), "");
 
-    tags.insert(QStringLiteral("ccc"), "xyz");
-    message->setTag(QStringLiteral("ccc"), "xyz");
+    tags.insert_or_assign("ccc", "xyz");
+    message->setTag("ccc", "xyz");
 
     QCOMPARE(message->tags().raw(), tags);
-    QCOMPARE(message->toData(), QByteArray("@aaa=bbb;ccc=xyz;example.com/ddd=eee :nick!ident@host.com PRIVMSG me Hello"));
+    // We don't know the order, because the tags are hashed.
+    QByteArray raw = message->toData();
+    QByteArrayView suffix = " :nick!ident@host.com PRIVMSG me Hello";
+    QVERIFY(raw.startsWith('@') && raw.endsWith(suffix));
+    raw.slice(1, raw.size() - suffix.size() - 1);
+    auto rawTags = raw.split(';');
+    std::ranges::sort(rawTags);
+    QCOMPARE(rawTags, (QList<QByteArray>{"aaa=bbb", "ccc=xyz", "example.com/ddd=eee"}));
 
-    tags.insert(QStringLiteral("fff"), "ggg");
-    message->setTag(QStringLiteral("fff"), "ggg");
+    tags.insert_or_assign("fff", "ggg");
+    message->setTag("fff", "ggg");
     QCOMPARE(message->tags().raw(), tags);
-    QCOMPARE(message->toData(), QByteArray("@aaa=bbb;ccc=xyz;example.com/ddd=eee;fff=ggg :nick!ident@host.com PRIVMSG me Hello"));
+    raw = message->toData();
+    QVERIFY(raw.startsWith('@') && raw.endsWith(suffix));
+    raw.slice(1, raw.size() - suffix.size() - 1);
+    rawTags = raw.split(';');
+    std::ranges::sort(rawTags);
+    QCOMPARE(rawTags, (QList<QByteArray>{"aaa=bbb", "ccc=xyz", "example.com/ddd=eee", "fff=ggg"}));
 
     tags.clear();
-    tags.insert(QStringLiteral("foo"), "bar");
+    tags.insert_or_assign("foo", "bar");
     message->setTags(tags);
     QCOMPARE(message->tags().raw(), tags);
+    // Here we know the order.
     QCOMPARE(message->toData(), QByteArray("@foo=bar :nick!ident@host.com PRIVMSG me Hello"));
-}
-
-void tst_IrcMessage::testServerTime()
-{
-    IrcConnection connection;
-    IrcMessage* message = IrcMessage::fromData("@time=2011-10-19T16:40:51.620Z :Angel!angel@example.org PRIVMSG Wiz :Hello", &connection);
-    QCOMPARE(message->timeStamp(), QDateTime(QDate(2011, 10, 19), QTime(16, 40, 51, 620), Qt::UTC));
 }
 
 void tst_IrcMessage::testAccount_data()

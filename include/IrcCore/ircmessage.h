@@ -145,10 +145,10 @@ public:
     void setTimeStamp(const QDateTime& timeStamp);
 
     TagsRef tags() const IRC_LIFETIMEBOUND;
-    void setTags(const QVariantMap& tags);
+    void setTags(std::unordered_map<std::string_view, QString> tags);
 
-    QVariant tag(const QString& name) const;
-    void setTag(const QString& name, const QString& value);
+    QVariant tag(std::string_view name) const;
+    void setTag(std::string_view name, const QString &value);
 
     Q_INVOKABLE QByteArray toData() const;
     Q_INVOKABLE static IrcMessage* fromData(const QByteArray& data, IrcConnection* connection);

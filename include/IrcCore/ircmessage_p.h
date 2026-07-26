@@ -79,7 +79,7 @@ public:
     QByteArray prefix;
     QByteArray command;
     QList<QByteArray> params;
-    QMap<QByteArray, QByteArray> tags;
+    std::vector<std::pair<std::string_view, std::string_view>> tags;
 };
 
 class IrcMessagePrivate
@@ -107,9 +107,9 @@ public:
     void setParams(const QStringList& params);
 
     TagsRef tags() const IRC_LIFETIMEBOUND;
-    void setTags(const QVariantMap& tags);
+    void setTags(std::unordered_map<std::string_view, QString> tags);
 
-    void insertTag(const QString &name, const QString &value);
+    void insertTag(std::string_view name, const QString &value);
 
     QByteArray content() const;
 
@@ -128,7 +128,7 @@ public:
     mutable IrcExplicitValue<QString> m_prefix;
     mutable IrcExplicitValue<QString> m_command;
     mutable IrcExplicitValue<QStringList> m_params;
-    mutable IrcExplicitValue<QVariantMap> m_tags;
+    mutable IrcExplicitValue<std::unordered_map<std::string_view, QString>> m_tags;
 };
 
 IRC_END_NAMESPACE

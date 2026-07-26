@@ -40,7 +40,7 @@ IRC_BEGIN_NAMESPACE
 /// Conceptually, this is a typedef to `const MapType &`.
 struct IRC_GSL_POINTER TagsRef
 {
-    using MapType = QVariantMap;
+    using MapType = std::unordered_map<std::string_view, QString>;
 
     /// Create a reference to a map.
     ///
@@ -53,16 +53,16 @@ struct IRC_GSL_POINTER TagsRef
     const MapType &raw() const;
 
     /// Get a tag by its name. If it doesn't exist, `std::nullopt` is returned.
-    [[nodiscard]] std::optional<QString> get(const QString &tag) const;
+    [[nodiscard]] std::optional<QString> get(std::string_view tag) const;
 
     /// Get a tag by its name or a fallback. If it doesn't exist in the map, use `other`.
-    [[nodiscard]] QString getOr(const QString &tag, const QString &other) const;
+    [[nodiscard]] QString getOr(std::string_view tag, const QString &other) const;
 
     /// Get a tag by its name or an empty string if it doesn't exist.
-    [[nodiscard]] QString getOrEmpty(const QString &tag) const;
+    [[nodiscard]] QString getOrEmpty(std::string_view tag) const;
 
     /// Check if a tag was specified.
-    [[nodiscard]] bool has(const QString &tag) const;
+    [[nodiscard]] bool has(std::string_view tag) const;
 
   private:
     // Stored as a pointer instead of a reference to generate the implicit copy/move ctors.

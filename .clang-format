@@ -4,7 +4,7 @@ BasedOnStyle: Microsoft
 BraceWrapping:
   AfterCaseLabel: false
   AfterClass: true
-  AfterControlStatement: Always
+  AfterControlStatement: Never
   AfterEnum: true
   AfterFunction: true
   AfterNamespace: true
@@ -13,7 +13,7 @@ BraceWrapping:
   AfterUnion: false
   AfterExternBlock: true
   BeforeCatch: true
-  BeforeElse: true
+  BeforeElse: false
   BeforeLambdaBody: false
   BeforeWhile: false
   IndentBraces: false
@@ -21,3 +21,4 @@ BraceWrapping:
   SplitEmptyRecord: true
   SplitEmptyNamespace: true
 ColumnLimit: 180
+
